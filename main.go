@@ -43,11 +43,12 @@ func main() {
 	defer db.Close()
 
 	app.Post("/api/shipment", acceptShipment(db))
+	app.Get("/api/audit", getAudit(db))
 
 	log.Fatal(app.Listen(":4000"))
 }
 
-// 
+//
 
 func acceptShipment(db *sql.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -87,5 +88,41 @@ func acceptShipment(db *sql.DB) fiber.Handler {
 		shipment.ID = lastInsertID
 		shipment.Accepted = true
 		return c.Status(http.StatusCreated).JSON(shipment)
+	}
+}
+
+func getAudit(db *sql.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+
+		var shipments []Shipment
+		rows, err := db.Query("SELECT id, chemical, amount, accepted FROM shipment_details WHERE accepted = true")
+		if err != nil {
+			log.Println("Error querying database:", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Internal Server Error",
+			})
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var shipment Shipment
+			if err := rows.Scan(&shipment.ID, &shipment.Chemical, &shipment.Amount, &shipment.Accepted); err != nil {
+				log.Println("Error scanning row:", err)
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+					"error": "Internal Server Error",
+				})
+			}
+			shipments = append(shipments, shipment)
+		}
+
+		if err := rows.Err(); err != nil {
+			log.Println("Error iterating over rows:", err)
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Internal Server Error",
+			})
+		}
+
+		// Return the shipments as JSON
+		return c.JSON(shipments)
 	}
 }
