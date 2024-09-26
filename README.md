@@ -46,3 +46,6 @@ Each issue will have a time estimate assigned, helping the team gauge how long t
 1. Clone the repository:
    ```bash
    git clone https://github.com/ch0min/dls-userstories-assignment
+
+### After Thought
+- When our project scales and become more exam focused, we'll make more labels, worksflow etc. There will be a more detailed display.
