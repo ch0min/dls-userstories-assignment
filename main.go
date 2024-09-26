@@ -47,6 +47,8 @@ func main() {
 	log.Fatal(app.Listen(":4000"))
 }
 
+// 
+
 func acceptShipment(db *sql.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		shipment := new(Shipment)
